@@ -17,7 +17,7 @@
 
 #define THRESH_HOLD 5
 
-uint8_t broadcastAddress[] = {};
+uint8_t broadcastAddress[] = {0xd8, 0xbc, 0x38, 0xf9, 0x64, 0xd8};
 
 typedef struct struct_msg_inc
 {
@@ -299,6 +299,12 @@ void loop()
       double distanceRight = getDistance(TRIGG_PIN_RIGHT, pulseTimeBeginRight, pulseTimeEndRight, newDistanceAvailableRight);
 
       autonomousFunc(distanceLeft, distanceFront, distanceRight);
+
+      outGoingData.distanceLeft = distanceLeft;
+      outGoingData.distanceFront = distanceFront;
+      outGoingData.distanceRight = distanceRight;
+
+      Serial.println(outGoingData.distanceLeft);
 
       esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&outGoingData, sizeof(outGoingData));
 

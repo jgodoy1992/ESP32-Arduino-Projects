@@ -7,7 +7,7 @@ PushButton::PushButton(byte bPin, bool isPullUp, bool internalPullUpActivated)
   this->internalPullUpActivated = internalPullUpActivated;
 
   lastTimeDebounce = millis();
-  debounceDelay = 30;
+  debounceDelay = 15;
 }
 
 void PushButton::init()

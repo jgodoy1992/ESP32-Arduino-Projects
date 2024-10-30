@@ -60,16 +60,9 @@ bool modeState = true;
 
 //***********FUCNTIONS***************/
 
-///*****ON SENT DATA******** */
-void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
-{
-    Serial.print("\r\nLast Packet Send Status: \t");
-    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
-}
-
 //******************DISAPLY*************/
 
-void displayDistance(double d1, double d2, double d3)
+void displayDistance(struct_msg_inc recievedData)
 {
 
     screen.clearDisplay();
@@ -83,20 +76,29 @@ void displayDistance(double d1, double d2, double d3)
     screen.setCursor(0, 20);
     screen.print("L (cm)");
     screen.setCursor(0, 30);
-    screen.print(d1);
+    screen.print(recievedData.distanceLeft);
 
     screen.setCursor(45, 20);
     screen.print("F (cm)");
     screen.setCursor(45, 30);
-    screen.print(d2);
+    screen.print(recievedData.distanceFront);
 
     screen.setCursor(87, 20);
     screen.print("R (cm)");
     screen.setCursor(87, 30);
-    screen.print(d3);
+    screen.print(recievedData.distanceRight);
 
     screen.display();
 }
+
+///*****ON SENT DATA******** */
+void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
+{
+    Serial.print("\r\nLast Packet Send Status: \t");
+    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+}
+
+///**********ON RECIEVE DATA************ */
 
 void onDataRecieve(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
@@ -149,13 +151,18 @@ void loop()
         if (modeBut.isPressed())
         {
             modeState = !modeState;
+
+            if (modeState)
+            {
+                screen.clearDisplay();
+                screen.display();
+            }
         }
 
         outGoingData.mode = modeState;
 
         if (modeState)
         {
-            screen.clearDisplay();
             outGoingData.left = leftBut.isPressed() == HIGH;
             outGoingData.forward = forBut.isPressed() == HIGH;
             outGoingData.right = rightBut.isPressed() == HIGH;
@@ -167,8 +174,7 @@ void loop()
             outGoingData.forward = false;
             outGoingData.right = false;
             outGoingData.backward = false;
-            displayDistance(
-                recievedData.distanceLeft, recievedData.distanceFront, recievedData.distanceRight);
+            displayDistance(recievedData);
         }
 
         esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&outGoingData, sizeof(outGoingData));
@@ -182,6 +188,6 @@ void loop()
             Serial.println("Error sendig the data");
         }
 
-        lastTimeLoop = millis();
+        lastTimeLoop += loopDelay;
     }
 }
